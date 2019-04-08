@@ -20,6 +20,18 @@ class DatasetCatalog(object):
             "coco/val2014",
             "coco/annotations/instances_valminusminival2014.json",
         ),
+        "tianchi_2019_rntrain": {
+            "img_dir": "/home/siting/files/DingGuo/tianchidataset/round2/jinnan2_round2_train_20190401/rn",
+            "ann_file": "/home/siting/files/DingGuo/tianchidataset/round2/jinnan2_round2_train_20190401/split/fbrate/2_3_benchmark/tianchi_instances_rntrain2019.json"
+        },
+        "tianchi_2019_rnval": {
+            "img_dir": "/home/siting/files/DingGuo/tianchidataset/round2/jinnan2_round2_train_20190401/rn",
+            "ann_file": "/home/siting/files/DingGuo/tianchidataset/round2/jinnan2_round2_train_20190401/split/fbrate/2_3_benchmark/tianchi_instances_rnval2019.json"
+        },
+        "tianchi_2019_test_a": {
+            "img_dir": "/home/siting/files/DingGuo/tianchidataset/round2/jinnan2_round2_test_a_20190401",
+            "ann_file": "/home/siting/files/DingGuo/tianchidataset/round2/tianchi_instances2_test_a_2019.json"
+        },
     }
 
     @staticmethod
@@ -28,8 +40,30 @@ class DatasetCatalog(object):
             data_dir = DatasetCatalog.DATA_DIR
             attrs = DatasetCatalog.DATASETS[name]
             args = dict(
-                root=os.path.join(data_dir, attrs[0]),
-                ann_file=os.path.join(data_dir, attrs[1]),
+                root=os.path.join(data_dir, attrs["img_dir"]),
+                ann_file=os.path.join(data_dir, attrs["ann_file"]),
+            )
+            return dict(
+                factory="COCODataset",
+                args=args,
+            )
+        elif "voc" in name:
+            data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                data_dir=os.path.join(data_dir, attrs["data_dir"]),
+                split=attrs["split"],
+            )
+            return dict(
+                factory="PascalVOCDataset",
+                args=args,
+            )
+        elif "tianchi" in name:
+            data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                root=os.path.join(data_dir, attrs["img_dir"]),
+                ann_file=os.path.join(data_dir, attrs["ann_file"]),
             )
             return dict(
                 factory="COCODataset",
