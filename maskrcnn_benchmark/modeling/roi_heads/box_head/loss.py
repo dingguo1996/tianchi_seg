@@ -38,7 +38,12 @@ class FastRCNNLossComputation(object):
         # NB: need to clamp the indices because we can have a single
         # GT in the image, and matched_idxs can be -2, which goes
         # out of bounds
-        matched_targets = target[matched_idxs.clamp(min=0)]
+        # matched_targets = target[matched_idxs.clamp(min=0)]
+        if target.bbox.shape[0]:
+            matched_targets = target[matched_idxs.clamp(min=0)]
+        else:
+            target.add_field("labels", matched_idxs.clamp(min=1, max=1))
+            matched_targets = target
         matched_targets.add_field("matched_idxs", matched_idxs)
         return matched_targets
 
@@ -63,10 +68,16 @@ class FastRCNNLossComputation(object):
             labels_per_image[ignore_inds] = -1  # -1 is ignored by sampler
 
             # compute regression targets
-            regression_targets_per_image = self.box_coder.encode(
-                matched_targets.bbox, proposals_per_image.bbox
-            )
-
+            # regression_targets_per_image = self.box_coder.encode(
+            #     matched_targets.bbox, proposals_per_image.bbox
+            # )
+            if not matched_targets.bbox.shape[0]:
+                zeros = torch.zeros_like(labels_per_image, dtype=torch.float)
+                regression_targets_per_image = torch.stack((zeros, zeros, zeros, zeros), dim=1)
+            else:
+                regression_targets_per_image = self.box_coder.encode(
+                    matched_targets.bbox, proposals_per_image.bbox
+                )
             labels.append(labels_per_image)
             regression_targets.append(regression_targets_per_image)
 

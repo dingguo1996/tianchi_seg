@@ -51,9 +51,18 @@ class Matcher(object):
             be matched.
         """
         if match_quality_matrix.numel() == 0:
-            # handle empty case
-            device = match_quality_matrix.device
-            return torch.empty((0,), dtype=torch.int64, device=device)
+            # empty targets or proposals not supported during training
+            if match_quality_matrix.shape[0] == 0:
+                # raise ValueError(
+                #     "No ground-truth boxes available for one of the images "
+                #     "during training")
+                length = match_quality_matrix.shape[-1]
+                device = match_quality_matrix.device
+                return torch.ones(length, dtype=torch.int64, device=device) * (-1)
+            else:
+                raise ValueError(
+                    "No proposal boxes available for one of the images "
+                    "during training")
 
         # match_quality_matrix is M (gt) x N (predicted)
         # Max over gt elements (dim 0) to find best gt candidate for each prediction
